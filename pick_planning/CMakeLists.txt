@@ -10,6 +10,13 @@ find_package(ament_cmake REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(moveit_servo REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+ament_python_install_package(${PROJECT_NAME})
+
 
 add_executable(test_moveit src/test_moveit.cpp)
 target_include_directories(test_moveit PUBLIC
@@ -35,8 +42,11 @@ ament_target_dependencies(
   "rclcpp"
 )
 
-
-
+# ament_python_install_package(${PROJECT_NAME})
+install(PROGRAMS
+  scripts/test.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 install(TARGETS test_moveit
   DESTINATION lib/${PROJECT_NAME})
 install(TARGETS test_servo
