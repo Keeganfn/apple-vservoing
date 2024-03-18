@@ -105,8 +105,8 @@ def generate_launch_description():
     return launch.LaunchDescription([
         launch_ros.actions.Node(
             package='pick_planning',
-            executable='test_moveit',
-            name='test_moveit',
+            executable='move_arm',
+            name='move_arm',
             parameters=[
             robot_description,
             robot_description_semantic,

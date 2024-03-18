@@ -18,6 +18,8 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
+find_package(moveit REQUIRED)
+find_package(pick_planning_interfaces REQUIRED)
 ament_python_install_package(${PROJECT_NAME})
 
 
@@ -33,6 +35,18 @@ ament_target_dependencies(
   "rclcpp"
 )
 
+add_executable(move_arm src/move_arm.cpp)
+target_include_directories(move_arm PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(move_arm PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  move_arm
+  "moveit_ros_planning_interface"
+  "pick_planning_interfaces"
+  "rclcpp"
+)
+
 add_executable(test_servo src/test_servo.cpp)
 target_include_directories(test_servo PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -45,12 +59,17 @@ ament_target_dependencies(
   "rclcpp"
 )
 
+
+
 # ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/test.py
+  scripts/global_planner.py
   DESTINATION lib/${PROJECT_NAME}
 )
 install(TARGETS test_moveit
+  DESTINATION lib/${PROJECT_NAME})
+install(TARGETS move_arm
   DESTINATION lib/${PROJECT_NAME})
 install(TARGETS test_servo
   DESTINATION lib/${PROJECT_NAME})

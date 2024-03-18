@@ -5,9 +5,10 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 
 // Servo
-#include <moveit_servo/servo_parameters.h>
+// #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/servo.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 int main(int argc, char ** argv)
 {
@@ -25,29 +26,26 @@ int main(int argc, char ** argv)
 
   // Set a target Pose
   auto const target_pose = [] {
-    geometry_msgs::msg::Pose msg;
-    msg.orientation.x = 0.0;
-    msg.orientation.y = 0.0;
-    msg.orientation.z = 0.0;
-    msg.orientation.w = 1.0;
-    msg.position.x = 0.6;
-    msg.position.y = 0;
-    msg.position.z = 0.65;
+    tf2::Quaternion orientation;
+    orientation.setRPY(3.14/2, 3.14, 3.14/2);
+    geometry_msgs::msg::PoseStamped msg;
+    msg.header.frame_id = "base_link";
+    msg.pose.orientation = tf2::toMsg(orientation);;
+    msg.pose.position.x = 0.35;
+    msg.pose.position.y = 0;
+    msg.pose.position.z = 0.6;
     return msg;
   }();
-  move_group_interface.setPoseTarget(target_pose);
-
+  move_group_interface.setPoseTarget(target_pose, "tool0");
+  move_group_interface.setGoalOrientationTolerance(.1);
   // Create a plan to that target pose
-  auto const [success, plan] = [&move_group_interface] {
-    moveit::planning_interface::MoveGroupInterface::Plan msg;
-    auto const ok = static_cast<bool>(move_group_interface.plan(msg));
-    return std::make_pair(ok, msg);
-  }();
 
+  moveit::planning_interface::MoveGroupInterface::Plan msg;
+  auto const ok = static_cast<bool>(move_group_interface.plan(msg));
   // Execute the plan
-  if (success)
+  if (ok)
   {
-    move_group_interface.execute(plan);
+    move_group_interface.execute(msg);
   }
   else
   {

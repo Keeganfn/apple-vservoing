@@ -103,8 +103,10 @@ class MinimalSubscriber(Node):
         vel_vec.twist.linear.y = transformed_vector.pose.position.y
         if distance < .05:
             vel_vec.twist.linear.z = 0.0
+            vel_vec.twist.linear.x = 0.0
+            vel_vec.twist.linear.y = 0.0
         else:
-            vel_vec.twist.linear.z = 0.3
+            vel_vec.twist.linear.z = 0.0
 
         return vel_vec
 
@@ -136,8 +138,8 @@ class MinimalSubscriber(Node):
             dist_to_apple = np.average(depth[np.nonzero(mask == 255)])
             closest_apple = apple_centers[np.argmin(xy_dist)]
             cv2.circle(image, (closest_apple[0], closest_apple[1]), 5, (0, 255, 0), 2)
-            print("DISTANCE", dist_to_apple)
-            print(np.argmin(xy_dist))
+            # print("DISTANCE", dist_to_apple)
+            # print(np.argmin(xy_dist))
 
             try:
                 vec = self.create_servo_vector(closest_apple, image, dist_to_apple)
@@ -149,8 +151,8 @@ class MinimalSubscriber(Node):
         cv2.imshow("camera", image)
         cv2.waitKey(1)
 
-        cv2.imshow("mask", depth)
-        cv2.waitKey(1)
+        # cv2.imshow("mask", depth)
+        # cv2.waitKey(1)
 
 def main(args=None):
     rclpy.init(args=args)
