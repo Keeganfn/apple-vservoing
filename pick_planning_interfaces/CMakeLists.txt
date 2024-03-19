@@ -14,7 +14,10 @@ find_package(sensor_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/MoveArm.srv"
-  "srv/StartGlobalSequence.srv"
+  "srv/StartSequence.srv"
+  "srv/MoveToNamedTarget.srv"
+  "srv/LocalPlannerSequence.srv"
+  "srv/GlobalPlannerSequence.srv"
   DEPENDENCIES 
   std_msgs
   geometry_msgs

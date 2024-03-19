@@ -9,8 +9,6 @@ from launch.conditions import IfCondition
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from ur_moveit_config.launch_common import load_yaml
-
 
 def generate_launch_description():
     description_package = "ur_description"
@@ -102,14 +100,33 @@ def generate_launch_description():
         [FindPackageShare("ur_moveit_config"), "config", "kinematics.yaml"]
     )
 
+    moveit_cpp_node = launch_ros.actions.Node(
+                    package='pick_planning',
+                    executable='move_arm',
+                    name='move_arm',
+                    parameters=[robot_description,robot_description_semantic,{"use_sim_time": True}])
+    
+    global_planner = launch_ros.actions.Node(
+                    package='pick_planning',
+                    executable='global_planner.py',
+                    name='global_planner')
+    
+    local_planner = launch_ros.actions.Node(
+                    package='pick_planning',
+                    executable='local_planner.py',
+                    name='local_planner')
+    
+    demo_node = launch_ros.actions.Node(
+                    package='pick_planning',
+                    executable='multi_apple_demo.py',
+                    name='multi_apple_demo',
+                    arguments=[LaunchConfiguration('demo_name')],)
+
+
     return launch.LaunchDescription([
-        launch_ros.actions.Node(
-            package='pick_planning',
-            executable='test_servo',
-            name='test_servo',
-            parameters=[
-            robot_description,
-            robot_description_semantic,
-            {"use_sim_time": False}
-            ])
+            DeclareLaunchArgument('demo_name', default_value="demo1"),
+            moveit_cpp_node,
+            global_planner,
+            local_planner,
+            demo_node
   ])

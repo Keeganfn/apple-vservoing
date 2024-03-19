@@ -19,7 +19,10 @@ find_package(std_srvs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(controller_manager_msgs REQUIRED)
 find_package(moveit REQUIRED)
+find_package(image_geometry REQUIRED)
 find_package(pick_planning_interfaces REQUIRED)
+find_package(gazebo_msgs REQUIRED)
+
 ament_python_install_package(${PROJECT_NAME})
 
 
@@ -63,8 +66,9 @@ ament_target_dependencies(
 
 # ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
-  scripts/test.py
+  scripts/local_planner.py
   scripts/global_planner.py
+  scripts/multi_apple_demo.py
   DESTINATION lib/${PROJECT_NAME}
 )
 install(TARGETS test_moveit
@@ -79,6 +83,11 @@ install(TARGETS test_servo
 # Install launch files.
 install(DIRECTORY
   launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+# Install launch files.
+install(DIRECTORY
+  resources
   DESTINATION share/${PROJECT_NAME}/
 )
 

@@ -26,6 +26,7 @@
   <exec_depend>controller_manager_msgs</exec_depend>
   <exec_depend>moveit</exec_depend>
   <exec_depend>image_geometry</exec_depend>
+  <exec_depend>gazebo_msgs</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
