@@ -26,18 +26,6 @@ find_package(gazebo_msgs REQUIRED)
 ament_python_install_package(${PROJECT_NAME})
 
 
-add_executable(test_moveit src/test_moveit.cpp)
-target_include_directories(test_moveit PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-target_compile_features(test_moveit PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(
-  test_moveit
-  "moveit_ros_planning_interface"
-  "moveit_servo"
-  "rclcpp"
-)
-
 add_executable(move_arm src/move_arm.cpp)
 target_include_directories(move_arm PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -50,19 +38,6 @@ ament_target_dependencies(
   "rclcpp"
 )
 
-add_executable(test_servo src/test_servo.cpp)
-target_include_directories(test_servo PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-target_compile_features(test_servo PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(
-  test_servo
-  "moveit_ros_planning_interface"
-  "moveit_servo"
-  "rclcpp"
-)
-
-
 
 # ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
@@ -71,12 +46,10 @@ install(PROGRAMS
   scripts/multi_apple_demo.py
   DESTINATION lib/${PROJECT_NAME}
 )
-install(TARGETS test_moveit
-  DESTINATION lib/${PROJECT_NAME})
+
 install(TARGETS move_arm
   DESTINATION lib/${PROJECT_NAME})
-install(TARGETS test_servo
-  DESTINATION lib/${PROJECT_NAME})
+
 
 
 

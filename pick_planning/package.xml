@@ -10,7 +10,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
-  <depend>moveit_ros_planning_interface</depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
   <depend>moveit_servo</depend>
   <depend>rclcpp</depend>
 
@@ -27,6 +27,7 @@
   <exec_depend>moveit</exec_depend>
   <exec_depend>image_geometry</exec_depend>
   <exec_depend>gazebo_msgs</exec_depend>
+  <exec_depend>pick_planning_interfaces</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
