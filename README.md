@@ -1,6 +1,6 @@
 ## Moveit2 Apple Picking Demo
 ![](https://github.com/Keeganfn/apple-vservoing/blob/main/docs/github_demo_gif.gif)
-This repo uses the ur5e with an attached RGBD camera in gazebo to find and pick "apples" (red circles). It uses Moveit2 for initial apple approach and Moveit2 Servo for the final pick approach. OpenCV is used to identify "apple" locations with the RGBD stream.
+This repo uses the ur5e with an attached RGBD camera in gazebo to find and pick "apples" (red spheres). It uses Moveit2 for initial apple approach and Moveit2 Servo for the final pick approach. OpenCV is used to identify "apple" locations with the RGBD stream.
 
 The purpose of this demo is to simulate real world approaches to robotic apple picking where an initial pick approach is chosen, and the final pick approach uses finer grain visual servoing. This helps mitigate problems that occur due to bad/noisy sensor data from an initial scan of the environment.  
 
