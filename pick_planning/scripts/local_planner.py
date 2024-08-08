@@ -21,7 +21,9 @@ from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from tf2_ros import TransformException
 import tf2_geometry_msgs
-
+#kalman
+from filterpy.kalman import KalmanFilter
+from filterpy.common import Q_discrete_white_noise
 
 class LocalPlanner(Node):
 
@@ -43,11 +45,13 @@ class LocalPlanner(Node):
 
         ### Servo controller params
         self.max_vel = 0.8
-        self.smoothing_factor = 12
-        self.z_speed = 0.5
+        self.smoothing_factor = 4
+        self.z_speed = 0.3
         self.start_flag = False
         # rate to wait for images to get saved
         self.rate = self.create_rate(1)
+
+        self.prev_vel = [0,0]
 
         ### Image Processing
         self.br = CvBridge()
@@ -56,8 +60,115 @@ class LocalPlanner(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
+        ### Kalman
+        # self.kf = KalmanFilter (dim_x=4, dim_z=2)
+        # self.kf.x = np.array([[200],
+        #                 [0],
+        #                 [200],
+        #                 [0]])
+        # self.kf.F = np.array([[1,.14,0,0],
+        #                 [0,1,0,0],
+        #                 [0,0,1,.14],
+        #                 [0,0,0,1]])
+        # self.kf.H = np.array([[1,0,0,0],
+        #                 [0,0,1,0]])
+        # self.kf.P *= 100
+        # self.kf.R = np.array([[300,0],
+        #                       [0,300]])
+        # # kf.Q = np.eye((4,4)) * 10
+        # self.kf.Q = Q_discrete_white_noise(dim=4, dt=.14, var=10)        
+
+        self.kf_pos = KalmanFilter (dim_x=6, dim_z=4)
+        self.kf_depth = KalmanFilter(dim_x=2, dim_z=2)
+
+
+    def init_kalman(self):
+        # self.kf_pos.x = np.array([[300],
+        #                 [0],
+        #                 [300],
+        #                 [0]])
+        # self.kf_pos.F = np.array([[1,.14,0,0],
+        #                 [0,1,0,0],
+        #                 [0,0,1,.14],
+        #                 [0,0,0,1]])
+        # self.kf_pos.H = np.array([[1,0,0,0],
+        #                 [0,0,1,0],
+        #                 [0,1,0,0],
+        #                 [0,0,0,1]])
+        # self.kf_pos.P *= 1
+        # self.kf_pos.R = np.array([[10, 0,0,0],
+        #                 [0, 10,0,0],
+        #                 [0, 0,10,0],
+        #                 [0, 0,0,10]]) * 10
+        # self.kf_pos.Q = Q_discrete_white_noise(dim=4, dt=.14, var=50000)
+        self.kf_pos.x = np.array([[300],
+                        [0],
+                        [0],
+                        [300],
+                        [0],
+                        [0]])
+        self.kf_pos.F = np.array([[1,.14,.0098,0,0,0],
+                                  [0,1,.14,0,0,0],
+                                  [0,0,1,0,0,0],
+                                  [0,0,0,1,.14,.0098],
+                                  [0,0,0,0,1,.14],
+                                  [0,0,0,0,0,1,]])
+        self.kf_pos.H = np.array([[1,0,0,0,0,0],
+                                  [0,1,0,0,0,0],
+                                  [0,0,0,1,0,0],
+                                  [0,0,0,0,1,0]])
+        self.kf_pos.P *= 10
+        self.kf_pos.R = np.array([[10, 0,0,0],
+                                  [0, 10,0,0],
+                                  [0, 0,10,0],
+                                  [0, 0,0,10]]) * 10000
+        self.kf_pos.Q = np.eye(6) * 500
+        # self.kf_pos.Q = Q_discrete_white_noise(dim=6, dt=.14, var=50000)
+
+        # self.kf_depth = KalmanFilter (dim_x=2, dim_z=1)
+        # self.kf_depth.x = np.array([[1.5], 
+        #                 [0]])
+        # self.kf_depth.F = np.array([[1, .14], 
+        #                 [0, 1]])
+        # self.kf_depth.H = np.array([[1, 0]])
+        # self.kf_depth.P *= 1
+        # self.kf_depth.R = 100
+        # # kf.Q = np.array([[1]])
+        # self.kf_pos.Q = np.eye(2) * 1
+        self.kf_depth = KalmanFilter (dim_x=2, dim_z=2)
+        self.kf_depth.x = np.array([[1.5], 
+                        [0]])
+        self.kf_depth.F = np.array([[1, .14], 
+                        [0, 1]])
+        self.kf_depth.H = np.array([[1, 0],
+                                    [0, 1]])
+        self.kf_depth.P *= 1000
+        self.kf_depth.R = np.eye(2) * 1
+        # kf.Q = np.array([[1]])
+        # self.kf_depth.Q = np.eye(2) * 1
+
+
     def start_sequence_srv_callback(self, request, response):
         # Starts servo node it it hasnt been started already
+        # self.kf = KalmanFilter (dim_x=4, dim_z=2)
+        # self.kf.x = np.array([[200],
+        #                 [0],
+        #                 [200],
+        #                 [0]])
+        # self.kf.F = np.array([[1,.14,0,0],
+        #                 [0,1,0,0],
+        #                 [0,0,1,.14],
+        #                 [0,0,0,1]])
+        # self.kf.H = np.array([[1,0,0,0],
+        #                 [0,0,1,0]])
+        # self.kf.P *= 100
+        # self.kf.R = np.array([[100,0],
+        #                       [0,100]])
+        # self.kf.Q = Q_discrete_white_noise(dim=4, dt=.14, var=10)         
+        # 
+        self.init_kalman() 
+
+
         self.get_logger().info("Activating servo node...")
         self.get_logger().info("Switching controller to forward_position_controller...")
         self.start_flag = True
@@ -113,6 +224,10 @@ class LocalPlanner(Node):
         else:
             new_y = -self.exponential_vel(1 - self.normalize(apple_y, 0, center_y))
         
+        # self.prev_vel[0] = (new_x / new_x) * min(.005, new_x)
+        # self.prev_vel[1] = (new_y / new_y) * min(.005, new_y)
+        self.prev_vel[0] = new_x
+        self.prev_vel[1] = new_y
         # Transform from optical frame to end effector frame
         transformed_vector = self.transform_optical_to_ee(new_x, new_y)
 
@@ -122,6 +237,7 @@ class LocalPlanner(Node):
         vel_vec.header.frame_id = "tool0"
         vel_vec.twist.linear.x = transformed_vector.pose.position.x
         vel_vec.twist.linear.y = transformed_vector.pose.position.y
+
 
         # If we are within picking distance then stop, otherwise move forward
         if distance < .05:
@@ -165,8 +281,23 @@ class LocalPlanner(Node):
             if apple_centers:
                 # Get closest apple to center of camera (z distance), create a servo vector, then publish
                 closest_apple = apple_centers[np.argmin(z_dist)]
+                closest_apple[0] += np.random.normal(0,100)
+                closest_apple[1] += np.random.normal(0,100)
+
+                self.kf_pos.predict()
+                # self.kf_pos.update(np.array([[closest_apple[0]],[closest_apple[1]], [self.prev_vel[0]], [self.prev_vel[1]]]))
+                self.kf_pos.update(np.array([[closest_apple[0]],[self.prev_vel[0]], [closest_apple[1]], [self.prev_vel[1]]]))
+                state = self.kf_pos.x
+                closest_apple = [float(state[0]), float(state[3])]
                 # cv2.circle(image, (closest_apple[0], closest_apple[1]), 5, (0, 255, 0), 2)
                 try:
+                    dist_to_apple = min(z_dist)
+                    dist_to_apple += np.random.uniform(-.1,.1) 
+                    self.kf_depth.predict()
+                    self.kf_depth.update(np.array([[dist_to_apple], [self.z_speed]]))
+                    dist_to_apple = self.kf_depth.x[0][0]
+                    self.get_logger().info(f'Distance original: {min(z_dist)}')
+                    self.get_logger().info(f'Distance: {dist_to_apple}')
                     vec = self.create_servo_vector(closest_apple, image, dist_to_apple)
                     self.servo_publisher.publish(vec)
                 except TransformException as e:
